@@ -13,7 +13,7 @@ jobs:
     name: build + tests + secret-scan (macOS)
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Secret scan
         run: bash scripts/check-secrets.sh
