@@ -18,9 +18,13 @@ cualquier pregunta y controla tu Mac. Sin ventanas nuevas, sin perder el flujo.
 
 ## Capturas
 
-| La isla con el agente | Splash al abrir | Proveedores y modelos |
-|---|---|---|
-| ![Consola con el agente](docs/capturas/consola-con-agente.png) | ![Splash](docs/capturas/splash-al-abrir.png) | ![Ajustes](docs/capturas/ajustes-proveedores.png) |
+| La isla abierta | Menú de la barra de menús |
+|---|---|
+| ![La isla abierta](docs/capturas/isla-abierta.png) | ![Menú del tray](docs/capturas/menu-tray.png) |
+
+| Ajustes | Proveedores y modelos |
+|---|---|
+| ![Ajustes](docs/capturas/ajustes.png) | ![Proveedores y modelos](docs/capturas/proveedores.png) |
 
 Colapsada, ConBarAI **no se ve**: es una ventana negra exactamente del tamaño
 del notch, negro sobre negro. Solo asoma un punto ámbar cuando el agente
