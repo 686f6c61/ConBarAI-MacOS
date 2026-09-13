@@ -1,5 +1,4 @@
 import Foundation
-import UserNotifications
 
 /// Ejecución de comandos con timeout, notificaciones y resolución de binarios.
 /// Es el sustituto de subprocess/notify-send de la versión Ubuntu.
@@ -54,28 +53,15 @@ enum Shell {
         return Result(code: p.terminationStatus, out: String(data: full, encoding: .utf8) ?? "")
     }
 
-    /// Notificación nativa (UserNotifications). Nada de osascript: el
-    /// AppleScript pedía permisos de Automatización/"gestor de scripts" al
-    /// abrir y cerrar la isla. Solo desde el .app instalado; desde binarios
-    /// sueltos (build/CLI sin bundle) es un no-op y basta el punto ámbar.
-    /// Bloquea brevemente: los avisos llegan de procesos cortos
-    /// (`conbarai alert`) que mueren nada más notificar.
+    /// SIN notificaciones del sistema — decisión de producto: ninguna
+    /// notificación puede aparecer jamás. El aviso de ConBarAI es el punto
+    /// ámbar bajo el notch (y la franja que asoma con la isla escondida).
+    /// Los caminos previos fallaban: osascript abría el Editor de Scripts,
+    /// y las nativas desde procesos CLI (hooks de tmux) se atribuían a
+    /// Editor de Scripts al pulsarlas. Los call sites se mantienen como
+    /// documentación de dónde ocurren los eventos.
     static func notify(_ message: String, title: String = "ConBarAI") {
-        guard Bundle.main.bundleIdentifier != nil else { return }
-        let center = UNUserNotificationCenter.current()
-        let sem = DispatchSemaphore(value: 0)
-        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
-            defer { sem.signal() }
-            guard granted else { return }
-            let content = UNMutableNotificationContent()
-            content.title = title
-            content.body = message
-            content.sound = .default
-            let req = UNNotificationRequest(identifier: UUID().uuidString,
-                                            content: content, trigger: nil)
-            center.add(req) { _ in }
-        }
-        _ = sem.wait(timeout: .now() + 3)
+        _ = message; _ = title
     }
 
     /// Escapa una ruta para incrustarla entre comillas simples en un comando de shell.

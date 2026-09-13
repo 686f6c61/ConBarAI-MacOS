@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.3 — 2026-09-13
+
+### Cambiado
+- **Cero notificaciones del sistema — regla de producto**. Ninguna
+  notificación puede aparecer jamás: el aviso de ConBarAI es el punto ámbar
+  bajo el notch. Los intentos previos fallaban (osascript abría el Editor de
+  Scripts; las nativas publicadas desde procesos CLI —hooks de tmux— se
+  atribuían a Editor de Scripts al pulsarlas). `Shell.notify` es un no-op.
+
 ## 1.5.2 — 2026-09-13
 
 ### Corregido
