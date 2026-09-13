@@ -82,17 +82,21 @@ enum Updater {
         guard let currentApp = installedAppPath() else {
             return "Esta copia no es un ConBarAI.app instalado; actualiza con el DMG nuevo a mano."
         }
-        // Montar
-        let mount = Shell.run("/usr/bin/hdiutil attach -nobrowse -plist '\(dmg)' 2>/dev/null | grep -o '/Volumes/[^\"]*'", timeout: 60)
-        let mountPoint = mount.out.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard mountPoint.hasPrefix("/Volumes/") else { return "No pude montar el DMG (\(mount.out))"
+        // Montar en un punto fijo propio: la salida de hdiutil (XML del
+        // plist) se parseaba mal y arrastraba "</string>" en la ruta.
+        let mountPoint = "\(NSTemporaryDirectory())ConBarAI-update-mount"
+        try? fm.removeItem(atPath: mountPoint)
+        let attach = Shell.run("/usr/bin/hdiutil attach -nobrowse -mountpoint \(Shell.shQuote(mountPoint)) \(Shell.shQuote(dmg)) 2>/dev/null", timeout: 60)
+        guard attach.code == 0 else {
+            return "No pude montar el DMG (exit \(attach.code))"
         }
-        defer { _ = Shell.run("/usr/bin/hdiutil detach '\(mountPoint)' -force 2>/dev/null", timeout: 30) }
+        defer { _ = Shell.run("/usr/bin/hdiutil detach \(Shell.shQuote(mountPoint)) -force 2>/dev/null", timeout: 30) }
 
-        // Localizar el .app nuevo
-        let listed = Shell.run("/bin/ls -d '\(mountPoint)'/*.app 2>/dev/null | head -1", timeout: 15)
-        let newApp = listed.out.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard newApp.hasSuffix(".app") else { return "El DMG no contiene un .app" }
+        // Localizar el .app nuevo (nombre conocido del empaquetado).
+        let newApp = "\(mountPoint)/ConBarAI.app"
+        guard fm.fileExists(atPath: "\(newApp)/Contents/MacOS/conbarai") else {
+            return "El DMG no contiene ConBarAI.app"
+        }
 
         // Sustituir: copia a temporal + relevo atómico de directorios.
         let staging = "\(NSTemporaryDirectory())ConBarAI-update.app"

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.1 — 2026-09-13
+
+### Corregido
+- **`conbarai update` fallaba al instalar**: el punto de montaje del DMG se
+  extraía con grep del plist de hdiutil y arrastraba `</string>` en la ruta
+  (ditto no encontraba el .app). Ahora monta en un punto fijo propio y no
+  parsea nada. El DMG de la 1.5.0 traía este fallo: actualiza a la 1.5.1.
+
 ## 1.5.0 — 2026-09-13
 
 ### Añadido

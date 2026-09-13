@@ -32,7 +32,7 @@ enum Paths {
     static let userCrashReportsDir = "\(home)/Library/Logs/DiagnosticReports"
     static let systemCrashReportsDir = "/Library/Logs/DiagnosticReports"
 
-    static let version = "1.5.0"
+    static let version = "1.5.1"
     static let repo = "686f6c61/ConBarAI-MacOS"
     static let socketName = "conbarai"
 
