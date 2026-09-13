@@ -1,0 +1,31 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secret scan
+        run: bash scripts/check-secrets.sh
+
+      - name: Build & test
+        run: |
+          swift build -c release
+          swift test
+
+      - name: Package DMG
+        run: bash scripts/package-dmg.sh
+
+      - name: Attach to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/ConBarAI-*.dmg
+          generate_release_notes: true

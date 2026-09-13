@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Plantilla de referencia: install.sh genera la real con rutas absolutas. -->
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>com.conbarai.panel</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/TU_USUARIO/.local/bin/conbarai</string>
+        <string>panel</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/TU_USUARIO/.opencode/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+    <key>RunAtLoad</key><true/>
+    <key>ProcessType</key><string>Interactive</string>
+    <key>LimitLoadToSessionType</key><string>Aqua</string>
+</dict>
+</plist>

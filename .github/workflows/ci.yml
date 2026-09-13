@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: build + tests + secret-scan (macOS)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secret scan
+        run: bash scripts/check-secrets.sh
+
+      - name: Build (debug)
+        run: swift build
+
+      - name: Tests (24)
+        run: swift test
+
+      - name: Build (release, smoke del binario)
+        run: |
+          swift build -c release
+          .build/release/conbarai --version
+          .build/release/conbarai help >/dev/null && echo "help ok"

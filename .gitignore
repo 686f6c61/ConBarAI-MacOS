@@ -1,0 +1,14 @@
+.build/
+.swiftpm/
+xcuserdata/
+.DS_Store
+*.xcodeproj
+# Artefactos de empaquetado: el DMG se fabrica en CI, nunca se commitea.
+dist/
+icons/icon.iconset/
+# Evidencia de verificación local (las capturas de producto van en docs/capturas).
+proof/
+# Basura de herramientas locales.
+.mimosa/
+.v2c/
+.video_agent/
