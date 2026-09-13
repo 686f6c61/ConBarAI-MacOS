@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.2 — 2026-09-13
+
+### Corregido
+- **Adiós al "gestor de scripts"**: los avisos (agente pide atención,
+  crashes, actualizaciones) iban por `osascript`, que dispara el prompt de
+  permisos de Automatización al abrir/cerrar la isla — y sin Acceso a
+  Disco Completo no funcionaba. Ahora son notificaciones nativas
+  (UserNotifications): el sistema pregunta UNA vez "¿ConBarAI puede enviar
+  notificaciones?", como cualquier app de mensajería. Sin AppleScript, sin
+  osascript, sin permisos de disco.
+
 ## 1.5.1 — 2026-09-13
 
 ### Corregido

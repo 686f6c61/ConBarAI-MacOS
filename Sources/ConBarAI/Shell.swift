@@ -1,4 +1,5 @@
 import Foundation
+import UserNotifications
 
 /// Ejecución de comandos con timeout, notificaciones y resolución de binarios.
 /// Es el sustituto de subprocess/notify-send de la versión Ubuntu.
@@ -53,11 +54,28 @@ enum Shell {
         return Result(code: p.terminationStatus, out: String(data: full, encoding: .utf8) ?? "")
     }
 
+    /// Notificación nativa (UserNotifications). Nada de osascript: el
+    /// AppleScript pedía permisos de Automatización/"gestor de scripts" al
+    /// abrir y cerrar la isla. Solo desde el .app instalado; desde binarios
+    /// sueltos (build/CLI sin bundle) es un no-op y basta el punto ámbar.
+    /// Bloquea brevemente: los avisos llegan de procesos cortos
+    /// (`conbarai alert`) que mueren nada más notificar.
     static func notify(_ message: String, title: String = "ConBarAI") {
-        let esc = message.replacingOccurrences(of: "\\", with: "\\\\")
-                         .replacingOccurrences(of: "\"", with: "\\\"")
-        _ = run(String(format: "/usr/bin/osascript -e 'display notification \"%@\" with title \"%@\"'", esc, title),
-                timeout: 10)
+        guard Bundle.main.bundleIdentifier != nil else { return }
+        let center = UNUserNotificationCenter.current()
+        let sem = DispatchSemaphore(value: 0)
+        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+            defer { sem.signal() }
+            guard granted else { return }
+            let content = UNMutableNotificationContent()
+            content.title = title
+            content.body = message
+            content.sound = .default
+            let req = UNNotificationRequest(identifier: UUID().uuidString,
+                                            content: content, trigger: nil)
+            center.add(req) { _ in }
+        }
+        _ = sem.wait(timeout: .now() + 3)
     }
 
     /// Escapa una ruta para incrustarla entre comillas simples en un comando de shell.
