@@ -10,7 +10,7 @@ cualquier pregunta y controla tu Mac. Sin ventanas nuevas, sin perder el flujo.
 
 [Capturas](#capturas) · [Instalación](#instalación) · [Atajos](#atajos) · [Seguridad](#seguridad)
 
-`macOS 13+ · nativo para Apple silicon (M1–M4), funciona también en Intel · MIT · by 686f6c61`
+`macOS 13+ · nativo para Apple silicon (M1–M6), funciona también en Intel · MIT · by 686f6c61`
 
 </div>
 
@@ -44,8 +44,12 @@ donde la dejaste — sobrevive a esconderla, cerrarla o reiniciar el Mac.
    pega tu API key (NaN, OpenAI, Claude, Z.ai, Kimi o x.ai), carga sus
    modelos y fija el predeterminado.
 
-Requisitos: [pi](https://pi.dev) (`npm i -g @mariozechner/pi-coding-agent`) y
-tmux (`brew install tmux`). El agente de respaldo OpenCode es opcional.
+¿No tienes `pi` o `tmux` todavía? **La propia isla te lo instala**: al
+abrirla aparece una portada con un botón que los instala por su canal
+oficial (Homebrew para tmux, npm para pi). Sin gestor de paquetes no
+descarga nada por su cuenta: te enlaza a [brew.sh](https://brew.sh) o
+[nodejs.org](https://nodejs.org). Por terminal: `conbarai deps`. El agente
+de respaldo OpenCode es opcional.
 
 ### Opción B — desde fuentes
 

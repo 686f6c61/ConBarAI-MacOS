@@ -87,6 +87,8 @@ enum Shell {
     static func opencodePath() -> String? { which("opencode") }
     static func tmuxPath() -> String? { which("tmux") }
     static func piPath() -> String? { which("pi") }
+    static func brewPath() -> String? { which("brew") }
+    static func npmPath() -> String? { which("npm") }
 
     /// Lanza un proceso desacoplado (sin esperar) — usado para análisis de crashes.
     static func spawnDetached(_ executable: String, _ args: [String]) -> Bool {

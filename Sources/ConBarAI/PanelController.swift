@@ -131,7 +131,7 @@ final class PanelController: NSObject {
         // Precalentado general: pi nace desacoplado (100×30) un segundo tras
         // arrancar el panel; abrir la isla es instantáneo y el banner nace íntegro.
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self else { return }
+            guard let self, Deps.current().allPresent else { return }
             Tmux.prewarmDetached(session: self.currentSession, workdir: self.currentWorkdir,
                                  settings: self.settings)
         }
@@ -419,6 +419,18 @@ final class PanelController: NSObject {
         detachClient() // mata al cliente tmux, la sesión sigue viva
         // La carpeta por defecto se crea si no existe; las elegidas a mano ya existen.
         try? FileManager.default.createDirectory(atPath: workdir, withIntermediateDirectories: true)
+        // Sin pi o sin tmux no hay consola que abrir: portada que ofrece
+        // instalarlos por su canal oficial (Homebrew/npm) sin salir de aquí.
+        let deps = Deps.current()
+        guard deps.allPresent else {
+            consoleView.setHeader(session: session, workdir: workdir)
+            consoleView.showDeps(missing: deps.missing,
+                                 guidance: deps.missing.map { Deps.guidanceText(for: $0, status: deps) }) { [weak self] in
+                self?.installMissingDeps()
+            }
+            return
+        }
+        consoleView.hideDeps()
         let host = TerminalHost(session: session, workdir: workdir, settings: settings,
                                 fresh: startFreshSession)
         startFreshSession = false
@@ -436,6 +448,31 @@ final class PanelController: NSObject {
         PiConfig.ensureQuietStartup(workdir: workdir)
         if expanded { focusTerminal() }
         refreshUsage()
+    }
+
+    /// Botón «Instalar» de la portada: brew/npm en segundo plano y consola
+    /// nueva en cuanto esté todo. Nunca descarga nada por su cuenta.
+    private func installMissingDeps() {
+        let deps = Deps.current()
+        guard !deps.allPresent else { return }
+        consoleView.setDepsStatus("instalando \(deps.missing.joined(separator: " y "))… un minuto")
+        DispatchQueue.global().async { [weak self] in
+            let result = Deps.runInstall(deps.missing)
+            DispatchQueue.main.async {
+                guard let self else { return }
+                if Deps.current().allPresent {
+                    self.install(session: self.currentSession, workdir: self.currentWorkdir)
+                } else {
+                    // Sigue faltando algo (sin canal o fallo): guía oficial.
+                    let now = Deps.current()
+                    self.consoleView.showDeps(missing: now.missing,
+                                              guidance: now.missing.map { Deps.guidanceText(for: $0, status: now) }) {
+                        self.installMissingDeps()
+                    }
+                    self.consoleView.setDepsStatus(result.ok ? "" : "no se pudo completar — sigue la guía de arriba")
+                }
+            }
+        }
     }
 
     /// Cambia de carpeta/sesión desde el tray.
@@ -699,6 +736,7 @@ final class ConsoleView: NSView {
     private let alertDot = NSView()
     private let hintLabel = NSTextField(labelWithString: "⌘N/⌘K nueva · ⌘W esconde")
     private let deadHint = NSTextField(labelWithString: "sesión terminada — reiníciala desde el tray")
+    private let depsCover = DepsCoverView()
     private var hostView: NSView?
     /// Referencia viva a la terminal para devolverle el teclado con un clic.
     weak var terminalRef: NSView?
@@ -763,6 +801,7 @@ final class ConsoleView: NSView {
         usageLabel.frame.origin = NSPoint(x: hintLabel.frame.minX - usageLabel.frame.width - 14,
                                           y: (headerH - usageLabel.frame.height) / 2)
         hostView?.frame = terminalFrame()
+        depsCover.frame = terminalFrame()
         deadHint.frame = NSRect(x: 0, y: 10, width: bounds.width, height: 18)
     }
 
@@ -782,7 +821,29 @@ final class ConsoleView: NSView {
         addSubview(host)
         host.frame = terminalFrame()
         host.needsLayout = true
+        host.isHidden = depsCover.isHidden == false
         deadHint.isHidden = true
+    }
+
+    /// Portada de dependencias: sustituye al terminal hasta que haya pi+tmux.
+    func showDeps(missing: [String], guidance: [String], onInstall: @escaping () -> Void) {
+        if depsCover.superview == nil { addSubview(depsCover) }
+        depsCover.configure(missing: missing, guidance: guidance)
+        depsCover.onInstall = onInstall
+        depsCover.frame = terminalFrame()
+        depsCover.isHidden = false
+        hostView?.isHidden = true
+        deadHint.isHidden = true
+        needsLayout = true
+    }
+
+    func hideDeps() {
+        depsCover.isHidden = true
+        hostView?.isHidden = false
+    }
+
+    func setDepsStatus(_ text: String) {
+        depsCover.setStatus(text)
     }
 
     func setHeader(session: String, workdir: String) {
@@ -810,5 +871,83 @@ final class ConsoleView: NSView {
                     blue: CGFloat(hex & 0xff) / 255, alpha: 1)
         }
         brandLabel.textColor = color(theme.accent)
+    }
+}
+
+/// Portada dentro de la isla cuando falta pi o tmux: dice qué falta, cómo se
+/// instalará (canal oficial) y ofrece el botón. Sin gestores de paquetes no
+/// instala nada: muestra la web oficial para que lo haga el usuario.
+final class DepsCoverView: NSView {
+    private let title = NSTextField(labelWithString: "Faltan dependencias")
+    private let detail = NSTextField(wrappingLabelWithString: "")
+    private let button = NSButton(title: "Instalar", target: nil, action: nil)
+    private let statusLine = NSTextField(labelWithString: "")
+    var onInstall: (() -> Void)?
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        wantsLayer = true
+
+        title.font = .systemFont(ofSize: 16, weight: .semibold)
+        title.textColor = .white
+        title.alignment = .center
+
+        detail.font = .systemFont(ofSize: 12, weight: .regular)
+        detail.textColor = .white.withAlphaComponent(0.75)
+        detail.alignment = .center
+        detail.preferredMaxLayoutWidth = 420
+
+        button.bezelStyle = .rounded
+        button.controlSize = .large
+        button.keyEquivalent = "\r"
+        button.target = self
+        button.action = #selector(installTapped)
+
+        statusLine.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+        statusLine.textColor = NSColor.systemYellow
+        statusLine.alignment = .center
+
+        addSubview(title)
+        addSubview(detail)
+        addSubview(button)
+        addSubview(statusLine)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    @objc private func installTapped() {
+        button.isEnabled = false
+        onInstall?()
+    }
+
+    func configure(missing: [String], guidance: [String]) {
+        button.isEnabled = true
+        statusLine.stringValue = ""
+        let lines = zip(missing, guidance).map { "· \($0) — \($1)" }
+        // Solo se ofrece el botón si TODO lo que falta tiene canal oficial.
+        let installable = missing.allSatisfy { Deps.installCommand(dep: $0, brewPath: Shell.brewPath(), npmPath: Shell.npmPath()) != nil }
+        button.isHidden = !installable
+        detail.stringValue = "La consola necesita \(missing.joined(separator: " y ")).\n\(lines.joined(separator: "\n"))\n\nSe instalan desde los canales oficiales (Homebrew · npm); ConBarAI no descarga nada por su cuenta."
+        needsLayout = true
+    }
+
+    func setStatus(_ text: String) {
+        statusLine.stringValue = text
+        needsLayout = true
+    }
+
+    override func layout() {
+        super.layout()
+        title.sizeToFit()
+        detail.frame = NSRect(x: (bounds.width - 460) / 2, y: bounds.midY - 30,
+                              width: 460, height: 110)
+        title.frame.origin = NSPoint(x: (bounds.width - title.frame.width) / 2,
+                                     y: detail.frame.maxY + 14)
+        button.sizeToFit()
+        button.frame.origin = NSPoint(x: (bounds.width - max(button.frame.width, 90)) / 2,
+                                      y: detail.frame.minY - 52)
+        statusLine.sizeToFit()
+        statusLine.frame.origin = NSPoint(x: (bounds.width - statusLine.frame.width) / 2,
+                                          y: button.frame.minY - 24)
     }
 }

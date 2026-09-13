@@ -122,6 +122,8 @@ case "key":
         print("uso: conbarai key set   (la key va por stdin, sin argumentos)")
         exit(64)
     }
+case "deps":
+    exit(Deps.cli())
 case "setup":
     exit(Setup.run())
 case "update":

@@ -10,7 +10,7 @@ that answers anything and controls your Mac. No new windows, no lost flow.
 
 [Screenshots](README.md#capturas) · [Install](#install) · [Shortcuts](#shortcuts) · [Security](#security)
 
-`macOS 13+ · native on Apple silicon (M1–M4), also runs on Intel · MIT · by 686f6c61`
+`macOS 13+ · native on Apple silicon (M1–M6), also runs on Intel · MIT · by 686f6c61`
 
 </div>
 
@@ -28,8 +28,12 @@ that answers anything and controls your Mac. No new windows, no lost flow.
    your API key (NaN, OpenAI, Claude, Z.ai, Kimi or x.ai), load live model
    lists and pick a default.
 
-Requirements: [pi](https://pi.dev) (`npm i -g @mariozechner/pi-coding-agent`)
-and tmux (`brew install tmux`). OpenCode works as an optional fallback agent.
+Missing `pi` or `tmux`? **The island installs them for you**: on first
+open it shows a cover with a button that installs them through their
+official channel (Homebrew for tmux, npm for pi). With no package manager
+it downloads nothing on its own — it points you to
+[brew.sh](https://brew.sh) or [nodejs.org](https://nodejs.org). From the
+terminal: `conbarai deps`. OpenCode works as an optional fallback agent.
 
 ### Option B — from source
 

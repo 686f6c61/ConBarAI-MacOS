@@ -8,7 +8,7 @@ enum Help {
         conbarai — consola de OpenCode que se esconde debajo del island del Mac
 
     SINOPSIS
-        conbarai [panel | watch | crash-run | alert | skill | usage | help]
+        conbarai [panel | watch | crash-run | alert | skill | deps | usage | help]
 
     DESCRIPCIÓN
         ConBarAI es el port nativo de macOS de la versión Ubuntu. Una consola
@@ -30,6 +30,8 @@ enum Help {
         alert            Uso interno del hook tmux: conbarai alert <sesión>.
         skill            Gestiona la skill macos-operator:
                          conbarai skill install | link <carpeta> | list
+        deps             Estado de pi y tmux; ofrece instalarlos por su
+                         canal oficial (Homebrew · npm) si faltan.
         usage            Muestra tokens y coste de la carpeta actual.
         help             Este manual.
         --version        Versión instalada.

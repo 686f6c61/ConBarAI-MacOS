@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.0 — 2026-09-13
+
+### Añadido
+- **Auto-instalación de dependencias (m6)**: si falta `pi` o `tmux`, la isla
+  abre una portada que ofrece instalarlos por su canal oficial (Homebrew para
+  tmux, npm para pi) con un botón, sin salir de la consola. `conbarai setup`
+  y el nuevo `conbarai deps` hacen lo mismo por terminal. Si no hay gestor
+  de paquetes, ConBarAI no descarga nada por su cuenta: enlaza a brew.sh o
+  nodejs.org para que lo instale el usuario.
+- Pie de README actualizado a Apple silicon M1–M6.
+
 ## 1.4.0 — 2026-09-13
 
 ### Añadido

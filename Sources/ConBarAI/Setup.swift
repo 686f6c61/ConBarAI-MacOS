@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 /// Primera ejecución desde el ConBarAI.app del DMG: registra LaunchAgents
@@ -94,6 +95,21 @@ enum Setup {
                 print("  \(label) registrado (activo desde el próximo login)")
             } else {
                 print("  \(label) activo")
+            }
+        }
+
+        print("▸ Dependencias de la consola")
+        let deps = Deps.current()
+        if deps.allPresent {
+            print("  pi + tmux listos")
+        } else if isatty(0) == 1 {
+            // `conbarai setup` por terminal: ofrece instalar sobre la marcha.
+            _ = Deps.installInteractive()
+        } else {
+            // Auto-setup del primer arranque (sin TTY): la isla ofrecerá
+            // instalarlas con un botón la primera vez que se abra.
+            for dep in deps.missing {
+                print("  falta \(dep): \(Deps.guidanceText(for: dep, status: deps))")
             }
         }
 
